@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/HYOSITIVE/Web2-Node#readme",
   "dependencies": {
+    "mysql": "^2.18.1",
     "sanitize-html": "^2.3.1"
   }
 }

@@ -1,0 +1,22 @@
+// Last Modification : 2021.02.09
+// by HYOSITIVE
+// based on Opentutorials - Node.js & MySQL - 3.1
+
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'root',
+  password : '111111',
+  database : 'opentutorials'
+});
+ 
+connection.connect();
+ 
+connection.query('SELECT * FROM topic', function (error, results, fields) {
+  if (error) {
+      console.log(error);
+  }
+  console.log(results);
+});
+ 
+connection.end();
