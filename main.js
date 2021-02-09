@@ -1,6 +1,6 @@
 // Last Modification : 2021.01.25
 // by HYOSITIVE
-// based on WEB2 - Node.js - 48
+// based on Opentutorials - Node.js & MySQL
 
 var http = require('http');
 var fs = require('fs');
