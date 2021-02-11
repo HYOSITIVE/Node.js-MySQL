@@ -1,6 +1,6 @@
 // Last Modification : 2021.01.25
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 4.2
+// based on Opentutorials - Node.js & MySQL - 5
 
 var http = require('http');
 var fs = require('fs');
@@ -41,7 +41,7 @@ var app = http.createServer(function(request,response){
 		}
 		
 		else { // 컨텐츠를 선택한 경우
-			fs.readdir('./data', function(error, filelist) {
+			/* fs.readdir('./data', function(error, filelist) {
 				var	filteredId = path.parse(queryData.id).base;
 				fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
 					var title = queryData.id;
@@ -51,10 +51,10 @@ var app = http.createServer(function(request,response){
 					});
 					var list = template.list(filelist);
 					var html = template.HTML(sanitizedTitle, list,
-						/*
+						
 						delete 기능은 link로 구현하면 안된다. update 기능에서 post를 사용한 것과 같은 이유
 						querystring이 포함된 delete 링크로 컨텐츠 임의 삭제가 가능하기 때문
-						*/
+						
 						`<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
 						` <a href="/create">create</a>
 						  <a href="/update?id=${sanitizedTitle}">update</a>
@@ -68,11 +68,34 @@ var app = http.createServer(function(request,response){
 					// response.end(fs.readFileSync(__dirname + _url)); : 사용자가 접근할 때마다 파일을 읽음
 					response.end(html);
 				});
+			}); */
+			db.query(`SELECT * FROM topic`, function(error, topics) {
+				if (error) {
+					throw error;
+				}
+				db.query(`SELECT * FROM topic WHERE id=?`,[queryData.id], function(error2, topic) {
+					// SQL문의 ?에 두 번째 인자의 값이 들어감. 해킹으로 인한 데이터 유출 방지
+					if (error2) {
+						throw error2;
+					}
+					var title = topic[0].title;
+					var description = topic[0].description;
+					var list = template.list(topics);
+					var html = template.HTML(title, list,
+						`<h2>${title}</h2>${description}`,
+						` <a href="/create">create</a>
+						  <a href="/update?id=${queryData.id}">update</a>
+						  <form action="delete_process" method="post">
+							  <input type="hidden" name="id" value="${queryData.id}">
+							  <input type="submit" value="delete">			
+						  </form>`
+					);
+				response.writeHead(200);
+				response.end(html);
+				})
 			});
 		}	
-
 	}
-
 	// 새로운 컨텐츠 생성
 	else if(pathname === '/create') { 
 		fs.readdir('./data', function(error, filelist) {
