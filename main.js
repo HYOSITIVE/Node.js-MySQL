@@ -1,6 +1,6 @@
 // Last Modification : 2021.01.25
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 4.1
+// based on Opentutorials - Node.js & MySQL - 4.2
 
 var http = require('http');
 var fs = require('fs');
@@ -26,26 +26,17 @@ var app = http.createServer(function(request,response){
 	// root, 즉 path가 없는 경로로 접속했을 때 - 정상 접속
 	if (pathname === '/') {
 		if(queryData.id === undefined) { // 메인 페이지
-			/* fs.readdir('./data', function(error, filelist) {
-				var title = 'Welcome';
-				var description = 'Hello, Node.js';
-
-				var list = template.list(filelist);
-				var html = template.HTML(title, list,
-					`<h2>${title}</h2>${description}`,
-					`<a href="/create">create</a>` // home에서는 update 기능 존재하지 않음
-					);
-				response.writeHead(200); // 200 : 파일을 정상적으로 전송했다.
-				// console.log(__dirname + _url); : 디렉토리와 query string의 값 출력
-				// response.end(fs.readFileSync(__dirname + _url)); : 사용자가 접근할 때마다 파일을 읽음
-				response.end(html);
-			}); */
-
 			// SQL문의 실행 결과가 callback function의 두 번째 인자에 저장
 			db.query(`SELECT * FROM topic`, function(error, topics) {
-				console.log(topics);
+				var title = 'Welcome';
+				var description = 'Hello, Node.js';
+				var list = template.list(topics);
+				var html = template.HTML(title, list,
+					`<h2>${title}</h2>${description}`,
+					`<a href="/create">create</a>`
+					);
 				response.writeHead(200);
-				response.end('Success');
+				response.end(html);
 			});
 		}
 		
