@@ -113,32 +113,30 @@ var app = http.createServer(function(request,response){
 	}
 
 	// 업데이트
-	else if(pathname === '/update') { 
-		fs.readdir('./data', function(error, filelist) {
-			var	filteredId = path.parse(queryData.id).base;			
-			fs.readFile(`data/${fileteredId}`, 'utf8', function(err, description) {
-				var title = queryData.id;
-				var list = template.list(filelist);
-				var html = template.HTML(title, list,
-					/*
-					form을 수정 해 update 기능 구현
-					파일 이름 수정을 대비해 사용자가 수정하는 정보(원본 파일명)와 우리가 수정하고자 하는 정보(변경된 파일명)를 구분해서 전송
-					HTML의 hidden type을 활용. hidden type 태그의 id에 원본 파일명 저장
-					*/
+	else if(pathname === '/update') {
+		db.query(`SELECT * FROM topic`, function(error, topics) {
+			db.query(`SELECT * FROM topic WHERE id=?`,[queryData.id], function(error2, topic) {
+				if (error2) {
+					throw error2;
+				}
+				var list = template.list(topics);
+				var html = template.HTML(topic[0].title, list,
 					`
 					<form action="/update_process" method="post">
-						<input type="hidden" name="id" value="${title}">
-						<p><input type ="text" name="title" placeholder="title" value="${title}"></p>
+						<input type="hidden" name="id" value="${topic[0].id}">
+						<p><input type ="text" name="title" placeholder="title" value="${topic[0].title}"></p>
 						<p>
-							<textarea name="description" placeholder="description">${description}</textarea>
+							<textarea name="description" placeholder="description">${topic[0].description}</textarea>
 						</p>
 						<p>
 							<input type="submit">
 						</p>
 					</form>
 					`,
-					`<a href="/create">create</a> <a href="/update?id=${title}">update</a>` // home이 아닐 경우 update 기능 존재, 수정할 파일 명시 위해 id 제공
+					`<a href="/create">create</a> <a href="/update?id=${topic[0].id}">update</a>` // home이 아닐 경우 update 기능 존재, 수정할 파일 명시 위해 id 제공
 					);
+				console.log(topic);
+				console.log(topic[0]);	
 				response.writeHead(200);
 				response.end(html);
 			});
@@ -153,16 +151,10 @@ var app = http.createServer(function(request,response){
 		});
 		request.on('end', function() {
 			var post = qs.parse(body);
-			var id = post.id;
-			var title = post.title;
-			var description = post.description;
-			// 기존 파일명(id), 새 파일명(title)을 활용해 파일명 변경. 내용 변경을 위해 callback 함수 호출
-			fs.rename(`data/${id}`, `data/${title}`, function(error) {
-				fs.writeFile(`data/${title}`, description, 'utf-8', function(err) {
-					response.writeHead(302, {Location: `/?id=${title}`}); // redirection
-					response.end();
-				});
-			});
+			db.query(`UPDATE topic SET title=?, description=?, author_id=1 WHERE id=?`, [post.title, post.description, post.id], function(error, result) {
+				response.writeHead(302, {Location: `/?id=${post.id}`});
+				response.end();
+			})
 		});
 	}
 
