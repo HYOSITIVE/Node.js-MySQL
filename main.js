@@ -1,6 +1,6 @@
-// Last Modification : 2021.01.25
+// Last Modification : 2021.02.12
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 5
+// based on Opentutorials - Node.js & MySQL - 6
 
 var http = require('http');
 var fs = require('fs');
@@ -41,34 +41,6 @@ var app = http.createServer(function(request,response){
 		}
 		
 		else { // 컨텐츠를 선택한 경우
-			/* fs.readdir('./data', function(error, filelist) {
-				var	filteredId = path.parse(queryData.id).base;
-				fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
-					var title = queryData.id;
-					var sanitizedTitle = sanitizeHtml(title);
-					var sanitizedDescription = sanitizeHtml(description, {
-						allowedTags:['h1']
-					});
-					var list = template.list(filelist);
-					var html = template.HTML(sanitizedTitle, list,
-						
-						delete 기능은 link로 구현하면 안된다. update 기능에서 post를 사용한 것과 같은 이유
-						querystring이 포함된 delete 링크로 컨텐츠 임의 삭제가 가능하기 때문
-						
-						`<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
-						` <a href="/create">create</a>
-						  <a href="/update?id=${sanitizedTitle}">update</a>
-						  <form action="delete_process" method="post">
-							  <input type="hidden" name="id" value="${sanitizedTitle}">
-							  <input type="submit" value="delete">			
-						  </form>`
-						);
-					response.writeHead(200); // 200 : 파일을 정상적으로 전송했다.
-					// console.log(__dirname + _url); : 디렉토리와 query string의 값 출력
-					// response.end(fs.readFileSync(__dirname + _url)); : 사용자가 접근할 때마다 파일을 읽음
-					response.end(html);
-				});
-			}); */
 			db.query(`SELECT * FROM topic`, function(error, topics) {
 				if (error) {
 					throw error;
@@ -78,6 +50,7 @@ var app = http.createServer(function(request,response){
 					if (error2) {
 						throw error2;
 					}
+					// topic이 배열로 return되기 때문에, 첫 번째 원소를 명시해주어야 함
 					var title = topic[0].title;
 					var description = topic[0].description;
 					var list = template.list(topics);
@@ -98,21 +71,19 @@ var app = http.createServer(function(request,response){
 	}
 	// 새로운 컨텐츠 생성
 	else if(pathname === '/create') { 
-		fs.readdir('./data', function(error, filelist) {
-			var title = 'WEB - create';
-			var list = template.list(filelist);
-			var html = template.HTML(title, list, `
-			<form action="/create_process" method="post">
-				<p><input type ="text" name="title" placeholder="title"></p>
-				<p>
-					<textarea name="description" placeholder="description"></textarea>
-				</p>
-				<p>
-					<input type="submit">
-				</p>
-			</form>
-			`, ''); // control이 존재하지 않기 때문에 argument에 공백 문자 입력
-			response.writeHead(200); 
+		db.query(`SELECT * FROM topic`, function(error, topics) {
+			var title = 'Create';
+			var list = template.list(topics);
+			var html = template.HTML(title, list,
+				`
+				<form action="/create_process" method="post">
+					<p><input type ="text" name="title" placeholder="title"></p>
+					<p><textarea name="description" placeholder="description"></textarea></p>
+					<p><input type="submit"></p>
+				</form>`,
+				`<a href="/create">create</a>`
+				);
+			response.writeHead(200);
 			response.end(html);
 		});
 	}
@@ -126,14 +97,18 @@ var app = http.createServer(function(request,response){
 		});
 		// 더 이상 들어올 정보가 없을 때, end에 해당되는 callback 함수 호출, 정보 수신이 끝났다는 뜻
 		request.on('end', function() {
-			var post = qs.parse(body); // post 데이터에 post 정보를 저장 (정보를 객체화)
-			var title = post.title;
-			var description = post.description;
-			// 입력한 데이터로 파일 생성, callback 함수 호출
-			fs.writeFile(`data/${title}`, description, 'utf-8', function(err) {
-				response.writeHead(302, {Location: `/?id=${title}`}); // redirection
-				response.end();
-			});
+			var post = qs.parse(body);
+			db.query(`INSERT INTO topic (title, description, created, author_id)
+				VALUES(?, ?, NOW(), ?)`,
+				[post.title, post.description, 1],
+				function(error, result) {
+					if (error) {
+						throw error;
+					}
+					response.writeHead(302, {Location: `/?id=${result.insertId}`}); // 삽입한 행의 id값
+					response.end();
+				}
+			)
 		});
 	}
 
