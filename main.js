@@ -1,6 +1,6 @@
 // Last Modification : 2021.02.15
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 9
+// based on Opentutorials - Node.js & MySQL - 10
 
 var http = require('http');
 var fs = require('fs');
@@ -73,19 +73,24 @@ var app = http.createServer(function(request,response){
 	// 새로운 컨텐츠 생성
 	else if(pathname === '/create') { 
 		db.query(`SELECT * FROM topic`, function(error, topics) {
-			var title = 'Create';
-			var list = template.list(topics);
-			var html = template.HTML(title, list,
-				`
-				<form action="/create_process" method="post">
-					<p><input type ="text" name="title" placeholder="title"></p>
-					<p><textarea name="description" placeholder="description"></textarea></p>
-					<p><input type="submit"></p>
-				</form>`,
-				`<a href="/create">create</a>`
-				);
-			response.writeHead(200);
-			response.end(html);
+			db.query(`SELECT * FROM author`, function(error2, authors) {
+				var title = 'Create';
+				var list = template.list(topics);
+				var html = template.HTML(title, list,
+					`
+					<form action="/create_process" method="post">
+						<p><input type ="text" name="title" placeholder="title"></p>
+						<p><textarea name="description" placeholder="description"></textarea></p>
+						<p>
+							${template.authorSelect(authors)}
+						</p>
+						<p><input type="submit"></p>
+					</form>`,
+					`<a href="/create">create</a>`
+					);
+				response.writeHead(200);
+				response.end(html);
+			});
 		});
 	}
 
@@ -101,7 +106,7 @@ var app = http.createServer(function(request,response){
 			var post = qs.parse(body);
 			db.query(`INSERT INTO topic (title, description, created, author_id)
 				VALUES(?, ?, NOW(), ?)`,
-				[post.title, post.description, 1],
+				[post.title, post.description, post.author],
 				function(error, result) {
 					if (error) {
 						throw error;
