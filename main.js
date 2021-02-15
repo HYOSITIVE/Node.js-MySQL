@@ -1,6 +1,6 @@
 // Last Modification : 2021.02.15
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 8
+// based on Opentutorials - Node.js & MySQL - 9
 
 var http = require('http');
 var fs = require('fs');
@@ -45,7 +45,7 @@ var app = http.createServer(function(request,response){
 				if (error) {
 					throw error;
 				}
-				db.query(`SELECT * FROM topic WHERE id=?`,[queryData.id], function(error2, topic) {
+				db.query(`SELECT * FROM topic LEFT JOIN author ON topic.author_id = author.id WHERE topic.id=?`,[queryData.id], function(error2, topic) {
 					// SQL문의 ?에 두 번째 인자의 값이 들어감. 해킹으로 인한 데이터 유출 방지
 					if (error2) {
 						throw error2;
@@ -55,7 +55,8 @@ var app = http.createServer(function(request,response){
 					var description = topic[0].description;
 					var list = template.list(topics);
 					var html = template.HTML(title, list,
-						`<h2>${title}</h2>${description}`,
+						`<h2>${title}</h2>${description}
+						<p>by ${topic[0].name}</p>`,
 						` <a href="/create">create</a>
 						  <a href="/update?id=${queryData.id}">update</a>
 						  <form action="delete_process" method="post">
@@ -134,9 +135,7 @@ var app = http.createServer(function(request,response){
 					</form>
 					`,
 					`<a href="/create">create</a> <a href="/update?id=${topic[0].id}">update</a>` // home이 아닐 경우 update 기능 존재, 수정할 파일 명시 위해 id 제공
-					);
-				console.log(topic);
-				console.log(topic[0]);	
+					);	
 				response.writeHead(200);
 				response.end(html);
 			});
