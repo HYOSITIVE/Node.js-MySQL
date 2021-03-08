@@ -1,6 +1,6 @@
 // Last Modification : 2021.03.08
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 16
+// based on Opentutorials - Node.js & MySQL - 17
 
 var http = require('http');
 var url = require('url');
@@ -46,6 +46,10 @@ var app = http.createServer(function(request,response){
 
 	else if(pathname === '/author') {
 		author.home(request, response);
+	}
+
+	else if(pathname === '/author/create_process') {
+		author.create_process(request, response);
 	}
 
 	else { // 그 외의 경로로 접속했을 때 - 에러
