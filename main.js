@@ -1,22 +1,12 @@
-// Last Modification : 2021.02.15
+// Last Modification : 2021.03.08
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 11
+// based on Opentutorials - Node.js & MySQL - 13
 
 var http = require('http');
-var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
 var template = require('./lib/template.js');
-var path = require('path');
-var sanitizeHtml = require('sanitize-html');
-var mysql = require('mysql');
-var db = mysql.createConnection({
-	host:'localhost',
-	user:'root',
-	password:'111111',
-	database:'opentutorials'
-});
-db.connect();
+var db = require('./lib/db');
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
