@@ -1,6 +1,6 @@
 // Last Modification : 2021.03.08
 // by HYOSITIVE
-// based on Opentutorials - Node.js & MySQL - 14.3
+// based on Opentutorials - Node.js & MySQL - 16
 
 var http = require('http');
 var url = require('url');
@@ -8,6 +8,7 @@ var qs = require('querystring');
 var template = require('./lib/template.js');
 var db = require('./lib/db');
 var topic = require('./lib/topic');
+var author = require('./lib/author');
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
@@ -18,7 +19,6 @@ var app = http.createServer(function(request,response){
 		if(queryData.id === undefined) { // 메인 페이지
 			topic.home(request, response);
 		}
-		
 		else { // 컨텐츠를 선택한 경우
 			topic.page(request, response);
 		}	
@@ -44,11 +44,13 @@ var app = http.createServer(function(request,response){
 		topic.delete_process(request, response);
 	}
 
-	// 그 외의 경로로 접속했을 때 - 에러
-	else {
+	else if(pathname === '/author') {
+		author.home(request, response);
+	}
+
+	else { // 그 외의 경로로 접속했을 때 - 에러
 		response.writeHead(404); // 404 : 파일을 찾을 수 없다.
 		response.end('Not found');
 	}
-	
 });
 app.listen(3000);
